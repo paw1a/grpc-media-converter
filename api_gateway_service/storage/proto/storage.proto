@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "github.com/paw1a/grpc-media-converter/storage_service/proto";
+
+service storageService {
+  rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+}
+
+message UploadFileRequest {
+  bytes binary = 1;
+}
+
+message UploadFileResponse {
+  string url = 1;
+}
+
+message DownloadFileRequest {
+  string url = 1;
+}
+
+message DownloadFileResponse {
+  bytes binary = 1;
+}
