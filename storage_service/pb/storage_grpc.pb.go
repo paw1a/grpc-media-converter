@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.20.3
-// source: storage_service/proto/storage.proto
+// source: pb/storage.proto
 
-package proto
+package pb
 
 import (
 	context "context"
@@ -172,5 +172,5 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "storage_service/proto/storage.proto",
+	Metadata: "pb/storage.proto",
 }

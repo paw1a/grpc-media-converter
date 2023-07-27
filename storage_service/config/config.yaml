@@ -1,0 +1,13 @@
+grpc:
+  port: :5000
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbName: products
+minio:
+  endpoint: 127.0.0.1:9000
+  accessKey: root
+  secretKey: rootroot
+  bucketName: media

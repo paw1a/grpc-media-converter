@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option go_package = "github.com/paw1a/grpc-media-converter/storage_service/proto";
+package storage;
 
-service storageService {
+option go_package = "github.com/paw1a/grpc-media-converter/api_gateway_service/storage/pb";
+
+service StorageService {
   rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
   rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
 }
