@@ -1,0 +1,4 @@
+grpc:
+  storageServicePort: :5000
+http:
+  port: 5001
