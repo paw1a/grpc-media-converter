@@ -4,19 +4,22 @@ option go_package = "github.com/paw1a/grpc-media-converter/storage_service/pb";
 
 service storageService {
   rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
-  rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
 
 message UploadFileRequest {
-  bytes binary = 1;
+  oneof RequestType {
+    string extension = 1;
+    bytes binary = 2;
+  }
 }
 
 message UploadFileResponse {
-  string url = 1;
+  string path = 1;
 }
 
 message DownloadFileRequest {
-  string url = 1;
+  string path = 1;
 }
 
 message DownloadFileResponse {

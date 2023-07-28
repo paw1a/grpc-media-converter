@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
 	UploadFile(ctx context.Context, opts ...grpc.CallOption) (StorageService_UploadFileClient, error)
-	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (*DownloadFileResponse, error)
+	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (StorageService_DownloadFileClient, error)
 }
 
 type storageServiceClient struct {
@@ -68,13 +68,36 @@ func (x *storageServiceUploadFileClient) CloseAndRecv() (*UploadFileResponse, er
 	return m, nil
 }
 
-func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (*DownloadFileResponse, error) {
-	out := new(DownloadFileResponse)
-	err := c.cc.Invoke(ctx, "/storageService/DownloadFile", in, out, opts...)
+func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (StorageService_DownloadFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], "/storageService/DownloadFile", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &storageServiceDownloadFileClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StorageService_DownloadFileClient interface {
+	Recv() (*DownloadFileResponse, error)
+	grpc.ClientStream
+}
+
+type storageServiceDownloadFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *storageServiceDownloadFileClient) Recv() (*DownloadFileResponse, error) {
+	m := new(DownloadFileResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // StorageServiceServer is the server API for StorageService service.
@@ -82,7 +105,7 @@ func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFil
 // for forward compatibility
 type StorageServiceServer interface {
 	UploadFile(StorageService_UploadFileServer) error
-	DownloadFile(context.Context, *DownloadFileRequest) (*DownloadFileResponse, error)
+	DownloadFile(*DownloadFileRequest, StorageService_DownloadFileServer) error
 	mustEmbedUnimplementedStorageServiceServer()
 }
 
@@ -93,8 +116,8 @@ type UnimplementedStorageServiceServer struct {
 func (UnimplementedStorageServiceServer) UploadFile(StorageService_UploadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
 }
-func (UnimplementedStorageServiceServer) DownloadFile(context.Context, *DownloadFileRequest) (*DownloadFileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
+func (UnimplementedStorageServiceServer) DownloadFile(*DownloadFileRequest, StorageService_DownloadFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
 }
 func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
 
@@ -135,22 +158,25 @@ func (x *storageServiceUploadFileServer) Recv() (*UploadFileRequest, error) {
 	return m, nil
 }
 
-func _StorageService_DownloadFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DownloadFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _StorageService_DownloadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DownloadFileRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(StorageServiceServer).DownloadFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/storageService/DownloadFile",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).DownloadFile(ctx, req.(*DownloadFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(StorageServiceServer).DownloadFile(m, &storageServiceDownloadFileServer{stream})
+}
+
+type StorageService_DownloadFileServer interface {
+	Send(*DownloadFileResponse) error
+	grpc.ServerStream
+}
+
+type storageServiceDownloadFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *storageServiceDownloadFileServer) Send(m *DownloadFileResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // StorageService_ServiceDesc is the grpc.ServiceDesc for StorageService service.
@@ -159,17 +185,17 @@ func _StorageService_DownloadFile_Handler(srv interface{}, ctx context.Context, 
 var StorageService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "storageService",
 	HandlerType: (*StorageServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "DownloadFile",
-			Handler:    _StorageService_DownloadFile_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "UploadFile",
 			Handler:       _StorageService_UploadFile_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "DownloadFile",
+			Handler:       _StorageService_DownloadFile_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "pb/storage.proto",
