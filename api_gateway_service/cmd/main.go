@@ -8,6 +8,7 @@ import (
 	"github.com/paw1a/grpc-media-converter/api_gateway_service/internal/client"
 	delivery "github.com/paw1a/grpc-media-converter/api_gateway_service/internal/delivery/http"
 	storage "github.com/paw1a/grpc-media-converter/api_gateway_service/pb/storage"
+	_ "github.com/paw1a/grpc-media-converter/api_gateway_service/pkg/logging"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"

@@ -3,17 +3,17 @@ package v1
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	pb "github.com/paw1a/grpc-media-converter/api_gateway_service/pb/storage"
+	storage "github.com/paw1a/grpc-media-converter/api_gateway_service/pb/storage"
 	"io"
 	"net/http"
 	"path/filepath"
 )
 
 func (h *Handler) initStorageRoutes(api *gin.RouterGroup) {
-	storage := api.Group("/storage", h.authRequired)
+	storageGroup := api.Group("/storage", h.authRequired)
 	{
-		storage.POST("/", h.uploadFile)
-		storage.GET("/:path", h.downloadFile)
+		storageGroup.POST("/", h.uploadFile)
+		storageGroup.GET("/:filename", h.downloadFile)
 	}
 }
 
@@ -42,7 +42,9 @@ func (h *Handler) uploadFile(c *gin.Context) {
 	}
 
 	fileExtension := filepath.Ext(fileHeader.Filename)
-	err = stream.Send(&pb.UploadFileRequest{RequestType: &pb.UploadFileRequest_Extension{Extension: fileExtension}})
+	err = stream.Send(&storage.UploadFileRequest{
+		RequestType: &storage.UploadFileRequest_Extension{Extension: fileExtension},
+	})
 	if err != nil {
 		errorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -52,7 +54,9 @@ func (h *Handler) uploadFile(c *gin.Context) {
 	for {
 		n, err := file.Read(buffer)
 		if n > 0 {
-			err := stream.Send(&pb.UploadFileRequest{RequestType: &pb.UploadFileRequest_Binary{Binary: buffer[:n]}})
+			err := stream.Send(&storage.UploadFileRequest{
+				RequestType: &storage.UploadFileRequest_Binary{Binary: buffer[:n]},
+			})
 			if err != nil {
 				errorResponse(c, http.StatusInternalServerError, err.Error())
 				return
@@ -78,6 +82,26 @@ func (h *Handler) uploadFile(c *gin.Context) {
 	successResponse(c, &UploadFileResponse{Filename: resp.Path})
 }
 
-func (h *Handler) downloadFile(context *gin.Context) {
+func (h *Handler) downloadFile(c *gin.Context) {
+	filename := c.Param("filename")
+	stream, err := h.storageService.DownloadFile(context.Background(),
+		&storage.DownloadFileRequest{Path: filename})
+	if err != nil {
+		errorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			errorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		_, err = c.Writer.Write(resp.GetBinary())
+		if err != nil {
+			errorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 }
