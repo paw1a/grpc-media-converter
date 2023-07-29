@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "github.com/paw1a/grpc-media-converter/api_gateway_service/auth/pb";
+option go_package = "github.com/paw1a/grpc-media-converter/auth_service/pb";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
@@ -15,10 +15,7 @@ message RegisterRequest {
   string password = 2;
 }
 
-message RegisterResponse {
-  int64 status = 1;
-  string error = 2;
-}
+message RegisterResponse {}
 
 message LoginRequest {
   string email = 1;
@@ -26,8 +23,6 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  int64 status = 1;
-  string error = 2;
   string token = 3;
 }
 
@@ -36,7 +31,5 @@ message ValidateRequest {
 }
 
 message ValidateResponse {
-  int64 status = 1;
-  string error = 2;
   int64 userId = 3;
 }

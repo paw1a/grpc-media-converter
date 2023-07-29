@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/paw1a/grpc-media-converter/storage_service/pkg/minio"
-	"github.com/paw1a/grpc-media-converter/storage_service/pkg/postgres"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"os"
@@ -17,9 +16,8 @@ func init() {
 }
 
 type Config struct {
-	GRPC     GRPC             `mapstructure:"grpc"`
-	Postgres *postgres.Config `mapstructure:"postgres"`
-	Minio    *minio.Config    `mapstructure:"minio"`
+	GRPC  GRPC          `mapstructure:"grpc"`
+	Minio *minio.Config `mapstructure:"minio"`
 }
 
 type GRPC struct {
@@ -55,16 +53,6 @@ func InitConfig() (*Config, error) {
 	grpcPort := os.Getenv("GRPC_PORT")
 	if grpcPort != "" {
 		cfg.GRPC.Port = grpcPort
-	}
-
-	postgresHost := os.Getenv("POSTGRES_HOST")
-	if postgresHost != "" {
-		cfg.Postgres.Host = postgresHost
-	}
-
-	postgresPort := os.Getenv("POSTGRES_PORT")
-	if postgresPort != "" {
-		cfg.Postgres.Port = postgresPort
 	}
 
 	return cfg, nil
